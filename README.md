@@ -17,25 +17,21 @@ find any station and favourite it without leaving the panel.
 
 ## Install
 
+One command:
+
 ```sh
 omarchy plugin add https://github.com/RobbieUK1/omarchy-cliamp.git --enable
-omarchy restart shell
 ```
 
-Then right-click your bar -> **Configure bar** (or edit
-`~/.config/omarchy/shell.json`) and add the widget to a section:
-
-```json
-"left": [
-  { "id": "robbie.cliamp" }
-]
-```
+The button appears in the bar's **left** section immediately — nothing to copy
+and no `shell.json` to edit. Add `--yes` to skip the placement question.
 
 ### Optional: survive `omarchy refresh shell`
 
 `omarchy refresh shell` regenerates `shell.json` from the shipped defaults and
-drops hand-added widgets, which silently removes this one. `ensure-bar.sh` puts
-it back. Wire it up with a systemd path unit that watches `shell.json`:
+drops every widget that is not in them, which silently removes this one.
+`ensure-bar.sh` puts it back. Wire it up with a systemd path unit that watches
+`shell.json`:
 
 `~/.config/systemd/user/omarchy-cliamp-bar.path`
 
