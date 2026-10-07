@@ -2,10 +2,10 @@
   "schemaVersion": 1,
   "id": "robbie.cliamp",
   "name": "Cliamp",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "author": "robbie",
   "license": "MIT",
-  "description": "Bar widget for the cliamp terminal music player. Only appears while cliamp is playing; a dropdown controls playback and switches between the default stations and your favourites",
+  "description": "Bar widget for the cliamp terminal music player. The button sits in the bar's left section and lights up while cliamp is running; a dropdown controls playback and switches between the default stations and your favourites",
   "kinds": [
     "bar-widget"
   ],
@@ -14,7 +14,7 @@
   },
   "barWidget": {
     "displayName": "Cliamp",
-    "description": "Music control for cliamp. The button shows only while playback is active; it opens a dropdown with prev/play-pause/next/stop plus a station picker (default stations or favourites).",
+    "description": "Music control for cliamp. The button stays on the bar and lights up while cliamp is running; it opens a dropdown with prev/play-pause/next plus a station picker (default stations or favourites).",
     "category": "Media",
     "allowMultiple": false,
     "defaultSection": "left"

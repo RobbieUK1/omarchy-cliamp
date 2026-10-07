@@ -3,17 +3,19 @@
 Bar widget for [cliamp](https://cliamp.stream), the terminal internet-radio
 player, for the Omarchy shell bar.
 
-The button only appears while cliamp is actually playing, so it costs no bar
-space the rest of the time. Clicking it opens a dropdown with prev /
-play-pause / next / stop, a volume-ish station picker, and a search box that
-queries the [Radio Browser](https://radio-browser.info) directory so you can
-find any station and favourite it without leaving the panel.
+The button lives permanently in the bar's **left** section, so it never costs
+you bar space elsewhere. It stays quiet while cliamp is idle and lights up in
+the accent colour while cliamp is running. Clicking it opens a dropdown with
+prev / play-pause / next, a station picker, and a search box that queries the
+[Radio Browser](https://radio-browser.info) directory so you can find any
+station and favourite it without leaving the panel. Clicking the button while
+nothing is playing launches cliamp for you.
 
 ## Requirements
 
 - Omarchy shell
-- [cliamp](https://cliamp.stream) installed and running
-- `python3` and `curl`
+- [cliamp](https://cliamp.stream) installed
+- `python3`
 
 ## Install
 
@@ -24,7 +26,9 @@ omarchy plugin add https://github.com/RobbieUK1/omarchy-cliamp.git --enable
 ```
 
 The button appears in the bar's **left** section immediately — nothing to copy
-and no `shell.json` to edit. Add `--yes` to skip the placement question.
+and no `shell.json` to edit. Add `--yes` to run unattended: it skips both the
+trust confirmation and the placement question, and is required when stdin is
+not a terminal.
 
 ### Optional: survive `omarchy refresh shell`
 
@@ -63,8 +67,12 @@ systemctl --user daemon-reload
 systemctl --user enable --now omarchy-cliamp-bar.path
 ```
 
-The script is a no-op when the widget is already present or the plugin has been
-disabled, so it never fights a removal you did on purpose.
+The script re-adds the widget only when the removal came from a refresh — it
+keys on the `shell.json.bak.<epoch>` backup that only `omarchy refresh` writes,
+which a removal you did on purpose never creates. A deliberate disable or
+widget removal leaves no backup, so the script stays out of the way. (Note
+that `omarchy bar defaults` on its own creates no backup either, so it is not
+covered.)
 
 ## How it works
 

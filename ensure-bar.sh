@@ -1,34 +1,49 @@
 #!/bin/bash
-# Re-adds the robbie.cliamp bar widget whenever shell.json is (re)generated —
-# e.g. after "omarchy refresh shell" restores the shipped defaults — or the
-# widget has otherwise vanished from a section. Triggered by the
-# omarchy-cliamp-bar.path systemd user unit on every shell.json write.
+# Re-adds the robbie.cliamp bar widget after "omarchy refresh shell" wipes it
+# from shell.json. Triggered by the omarchy-cliamp-bar.path systemd user unit
+# on every shell.json write.
 #
-# No-op when the widget is present or the plugin has been disabled, so it
-# never fights a deliberate removal.
+# A refresh is detected by the shell.json.bak.<epoch> backup that
+# omarchy-refresh-config leaves next to shell.json (it only writes one when
+# the refreshed content differs from what was there). Removing the widget on
+# purpose never creates a backup, so this script stays out of the way.
 set -u
 
-CONFIG="$HOME/.config/omarchy/shell.json"
+CONFIG_DIR="$HOME/.config/omarchy"
+CONFIG="$CONFIG_DIR/shell.json"
 ID="robbie.cliamp"
+
+widget_present() {
+  python3 -c "import json,sys
+d = json.load(open('$CONFIG'))
+sys.exit(0 if any(w.get('id') == '$ID' for s in ('left', 'center', 'right')
+                  for w in d.get('bar', {}).get('layout', {}).get(s, [])) else 1)" 2>/dev/null
+}
 
 # Let a refresh's multi-step rewrites (refresh-config, bar defaults) settle
 # before asserting — the path unit is debounced, but this avoids racing the
 # in-flight restart.
 sleep 3
 
-stable=0
 for _ in 1 2 3 4 5 6 7 8 9 10; do
   [[ -f $CONFIG ]] && break
   sleep 1
 done
+[[ -f $CONFIG ]] || exit 0
 
-present=$(python3 -c "import json,sys
-d=json.load(open('$CONFIG'))
-print(any(w.get('id')=='$ID' for s in ('left','center','right') for w in d.get('bar',{}).get('layout',{}).get(s,[])))" 2>/dev/null)
-[[ "$present" == "True" ]] && exit 0
+widget_present && exit 0
 
-# Only restore if the plugin is still enabled (respect deliberate removal).
-omarchy plugin list 2>/dev/null | grep -qE "^$ID([[:space:]]|$)" || exit 0
+# No fresh backup means this write was not a refresh: leave the removal alone.
+find "$CONFIG_DIR" -maxdepth 1 -name 'shell.json.bak.*' -mmin -5 -print -quit 2>/dev/null |
+  grep -q . || exit 0
 
-# Idempotent; retries internally until the shell is ready after a restart.
-omarchy bar put "$ID" --after robbie.rss
+# Placement is the live shell's call, and it may still be restarting or
+# holding the pre-refresh config in memory, so retry until it lands.
+for _ in 1 2 3 4 5 6; do
+  omarchy bar put "$ID" --section left >/dev/null 2>&1 || true
+  widget_present && exit 0
+  sleep 2
+done
+
+echo "ensure-bar: could not place $ID on the bar" >&2
+exit 1
